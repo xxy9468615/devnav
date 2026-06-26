@@ -1,0 +1,17 @@
+{
+  "apps": [
+    {
+      "name": "devnav",
+      "script": "dist/server/entry.mjs",
+      "cwd": "/opt/devnav",
+      "env": {
+        "HOST": "0.0.0.0",
+        "PORT": "4321",
+        "NODE_ENV": "production"
+      },
+      "max_memory_restart": "200M",
+      "autorestart": true,
+      "watch": false
+    }
+  ]
+}
