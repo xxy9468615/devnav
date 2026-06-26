@@ -1,17 +1,13 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import node from '@astrojs/node';
+import vercel from '@astrojs/vercel';
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 
 export default defineConfig({
   integrations: [react()],
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
-  server: {
-    port: 4321,
-    host: '0.0.0.0',
-  },
+  adapter: vercel(),
   vite: {
     css: {
       postcss: {
