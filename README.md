@@ -1,59 +1,86 @@
-# DevNav — Developer Resource Navigation
+# DevNav — 1200+ Free Developer Tools & Resources Directory
 
-Auto-updating developer resource directory. Aggregates bookmarks, awesome lists, and community picks.
+> 🚀 Auto-updated hourly from [free-for-dev](https://github.com/ripienaar/free-for-dev), [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted), and Hacker News.
 
-## Quick Start
+## 📂 Resource Categories
 
-### 1. Setup Supabase Table
-Run `setup-supabase.sql` in your Supabase SQL Editor.
+| Category | Examples |
+|----------|----------|
+| 🚀 **DevOps & Cloud** | AWS, GCP, Azure free tiers, CI/CD, containers, DNS, hosting |
+| 🤖 **AI & Machine Learning** | LLM APIs, code generation, ML platforms, generative AI tools |
+| 🎨 **Frontend** | UI frameworks, CSS tools, CMS, Flutter, React, Vue |
+| ⚙️ **Backend** | Server frameworks, APIs, email, messaging, authentication |
+| 🗄️ **Database** | PostgreSQL, MongoDB, Redis, Supabase, Firebase |
+| 🔒 **Security** | Auth platforms, PKI, encryption, vulnerability scanning |
+| ✨ **Design** | Fonts, icons, color tools, UI/UX prototyping |
+| 📚 **Learning** | Courses, tutorials, documentation, certifications |
+| ⚡ **Productivity** | IDE, code quality, testing, project management, collaboration |
+| 🆓 **Free Services** | Misc free tiers, APIs, and SaaS for developers |
 
-### 2. Configure Environment
-Edit `.env` with your Supabase credentials:
+## ✨ Features
+
+- **1200+ curated resources** across 11 categories
+- **Auto-updated hourly** — never miss a new free tier
+- **Dark mode** — easy on the eyes
+- **Instant search** — client-side, no loading delays
+- **Category filtering** — find what you need fast
+- **Source badges** — know where each resource comes from
+
+## 🛠️ Tech Stack
+
+- [Astro](https://astro.build) SSR + [Tailwind CSS](https://tailwindcss.com)
+- [Supabase](https://supabase.com) PostgreSQL
+- [Vercel](https://vercel.com) deployment
+- GitHub Actions for automated data sync
+
+## 🚀 Quick Start
+
 ```bash
-PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_KEY=your_service_role_key
-```
+# Clone
+git clone https://github.com/xxy9468615/devnav.git && cd devnav
 
-### 3. Deploy to Server
-```bash
-# Upload the entire devnav folder to your server (e.g., /opt/devnav)
-# Then SSH in and run:
-
-cd /opt/devnav
+# Install
 npm install
-npm run build
-npm start
-```
 
-### 4. Run with PM2 (recommended)
-```bash
-npm install -g pm2
-pm2 start ecosystem.config.json
-pm2 save
-```
+# Configure
+cp .env.example .env
+# Edit .env with your Supabase credentials
 
-### 5. Setup Hourly Data Fetch
-```bash
-crontab -e
-# Add this line:
-17 * * * * cd /opt/devnav && node scripts/fetch-all.mjs >> /var/log/devnav-fetch.log 2>&1
-```
+# Setup database
+# Run setup-supabase.sql in Supabase SQL Editor
 
-### 6. First Data Fetch
-```bash
+# Fetch data
 npm run fetch
+
+# Dev server
+npm run dev
 ```
 
-## Tech Stack
-- Astro 6 SSR + Tailwind 3
-- Supabase PostgreSQL
-- React Islands (search/filter)
-- PM2 process manager
+## 📦 Deploy to Vercel (Free)
 
-## Scripts
-- `npm run build` — Build for production
-- `npm start` — Start the server (port 4321)
-- `npm run fetch` — Run data fetch pipeline manually
-- `pm2 logs devnav` — View server logs
+1. Fork this repo
+2. Connect to [Vercel](https://vercel.com)
+3. Add environment variables:
+   - `PUBLIC_SUPABASE_URL`
+   - `PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_KEY`
+4. Deploy — done!
+
+## 🔄 Auto Data Sync
+
+GitHub Actions runs every hour to sync resources:
+
+- [free-for-dev](https://github.com/ripienaar/free-for-dev) — 1200+ free SaaS/PaaS/IaaS services
+- [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted) — self-hosted software
+- [Hacker News](https://news.ycombinator.com) — top 30 frontpage picks
+
+Add GitHub Secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`) to enable.
+
+## 📄 License
+
+MIT
+
+---
+
+**Keywords:** free developer tools, developer resources, free SaaS, free API, cloud free tier, devops tools, AI tools, open source, awesome list, free hosting, free database, developer directory, programming resources, free tier list, web development tools
