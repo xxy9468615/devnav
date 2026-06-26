@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 export async function GET() {
   const url = process.env.PUBLIC_SUPABASE_URL || 'NOT SET';
