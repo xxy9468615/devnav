@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navigation from '../components/Navigation.astro';
+import CategoryNav from '../components/CategoryNav.astro';
+import ResourceGrid from '../components/ResourceGrid.astro';
+import SearchBar from '../components/SearchBar.tsx';
+import { getAllResources, loadCategories } from '../lib/resources';
+
+const { category } = Astro.params;
+
+const [allResources, categories] = await Promise.all([
+  getAllResources(),
+  loadCategories(),
+]);
+
+const currentCategory = categories.find(c => c.id === category);
+if (!currentCategory) {
+  return Astro.redirect('/');
+}
+
+const resources = allResources.filter(r => r.category === category);
+---
+
+<BaseLayout title={`${currentCategory.icon} ${currentCategory.name} — DevNav`}>
+  <Navigation />
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Category Header -->
+    <section class="mb-8">
+      <a href="/" class="text-sm text-text-secondary dark:text-dark-text-secondary hover:text-accent-blue no-underline mb-4 inline-block">
+        ← Back to all
+      </a>
+      <h1 class="font-heading font-bold text-3xl mb-2 animate-fade-in">
+        {currentCategory.icon} {currentCategory.name}
+      </h1>
+      <p class="text-text-secondary dark:text-dark-text-secondary mb-6">
+        {currentCategory.description}
+      </p>
+
+      <!-- Search -->
+      <div class="max-w-xl mb-6">
+        <SearchBar client:load />
+      </div>
+
+      <!-- Categories -->
+      <CategoryNav categories={categories} current={category} />
+    </section>
+
+    <!-- Resource Grid -->
+    <section>
+      <ResourceGrid resources={resources} />
+    </section>
+  </main>
+</BaseLayout>

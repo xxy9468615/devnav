@@ -1,0 +1,8 @@
+# Local markdown document references
+# Add links to your own docs, notes, guides
+
+- title: "Astro Documentation"
+  url: "https://docs.astro.build"
+  description: "Official Astro framework documentation"
+  category: "learning"
+  tags: ["astro", "docs", "framework"]

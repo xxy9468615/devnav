@@ -1,0 +1,37 @@
+---
+import type { Category } from '../lib/types';
+
+interface Props {
+  categories: Category[];
+  current?: string;
+}
+
+const { categories, current } = Astro.props;
+---
+
+<div class="flex flex-wrap gap-2">
+  <a
+    href="/"
+    class:list={[
+      'px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline',
+      !current
+        ? 'bg-accent-blue text-white'
+        : 'bg-bg-secondary dark:bg-dark-bg-secondary text-text-secondary dark:text-dark-text-secondary hover:bg-bg-tertiary dark:hover:bg-dark-bg-tertiary',
+    ]}
+  >
+    All
+  </a>
+  {categories.map((cat) => (
+    <a
+      href={`/${cat.id}`}
+      class:list={[
+        'px-3 py-1.5 rounded-full text-sm font-medium transition-colors no-underline',
+        current === cat.id
+          ? 'bg-accent-blue text-white'
+          : 'bg-bg-secondary dark:bg-dark-bg-secondary text-text-secondary dark:text-dark-text-secondary hover:bg-bg-tertiary dark:hover:bg-dark-bg-tertiary',
+      ]}
+    >
+      {cat.icon} {cat.name}
+    </a>
+  ))}
+</div>

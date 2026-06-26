@@ -1,0 +1,44 @@
+# Add your browser bookmarks here
+# Export from Chrome: chrome://bookmarks → ⋮ → Export bookmarks
+# Then convert to this format or add manually
+
+- title: "GitHub"
+  url: "https://github.com"
+  description: "Where the world builds software"
+  category: "devops"
+  tags: ["git", "collaboration", "open-source"]
+  featured: true
+
+- title: "Vercel"
+  url: "https://vercel.com"
+  description: "Develop. Preview. Ship. Frontend cloud platform"
+  category: "devops"
+  tags: ["hosting", "serverless", "deployment"]
+  featured: true
+
+- title: "Supabase"
+  url: "https://supabase.com"
+  description: "Open source Firebase alternative with PostgreSQL"
+  category: "database"
+  tags: ["postgresql", "auth", "realtime"]
+  featured: true
+
+- title: "Astro"
+  url: "https://astro.build"
+  description: "The web framework for content-driven websites"
+  category: "frontend"
+  tags: ["ssg", "ssr", "framework"]
+  featured: true
+
+- title: "Tailwind CSS"
+  url: "https://tailwindcss.com"
+  description: "A utility-first CSS framework"
+  category: "frontend"
+  tags: ["css", "utility", "design"]
+
+- title: "Claude"
+  url: "https://claude.ai"
+  description: "Anthropic's AI assistant"
+  category: "ai-ml"
+  tags: ["llm", "chat", "assistant"]
+  featured: true

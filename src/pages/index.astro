@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navigation from '../components/Navigation.astro';
+import CategoryNav from '../components/CategoryNav.astro';
+import ResourceGrid from '../components/ResourceGrid.astro';
+import SearchBar from '../components/SearchBar.tsx';
+import { getAllResources, loadCategories } from '../lib/resources';
+
+const [resources, categories] = await Promise.all([
+  getAllResources(),
+  loadCategories(),
+]);
+
+const total = resources.length;
+const sources = {
+  bookmarks: resources.filter(r => r.source === 'bookmark').length,
+  awesome: resources.filter(r => r.source === 'awesome').length,
+  community: resources.filter(r => r.source === 'community').length,
+  freeService: resources.filter(r => r.source === 'free-service').length,
+};
+---
+
+<BaseLayout>
+  <Navigation />
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Hero -->
+    <section class="text-center mb-10">
+      <h1 class="font-heading font-bold text-3xl sm:text-4xl mb-3 animate-fade-in">
+        ⚡ Developer Resources
+      </h1>
+      <p class="text-text-secondary dark:text-dark-text-secondary max-w-2xl mx-auto mb-6">
+        Curated tools, free services, and community picks for developers.
+        Auto-updated every hour from awesome lists, HN, Reddit, and more.
+      </p>
+
+      <!-- Stats -->
+      <div class="flex justify-center gap-6 mb-8 text-sm">
+        <div class="text-center">
+          <span class="block font-heading font-bold text-2xl text-accent-green">{total}</span>
+          <span class="text-text-secondary dark:text-dark-text-secondary">Resources</span>
+        </div>
+        <div class="text-center">
+          <span class="block font-heading font-bold text-2xl text-accent-blue">{categories.length}</span>
+          <span class="text-text-secondary dark:text-dark-text-secondary">Categories</span>
+        </div>
+        <div class="text-center">
+          <span class="block font-heading font-bold text-2xl text-accent-blue">5</span>
+          <span class="text-text-secondary dark:text-dark-text-secondary">Sources</span>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="max-w-xl mx-auto mb-8">
+        <SearchBar client:load />
+      </div>
+
+      <!-- Categories -->
+      <CategoryNav categories={categories} />
+    </section>
+
+    <!-- Resource Grid -->
+    <section>
+      <ResourceGrid resources={resources} />
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-8 border-t border-bg-tertiary/30 dark:border-dark-bg-tertiary/30">
+    <div class="text-center text-sm text-text-secondary/60 dark:text-dark-text-secondary/60">
+      <p>DevNav — Curated developer resources, auto-updated hourly</p>
+      <p class="mt-1">Data from awesome lists, Hacker News, Reddit, Product Hunt</p>
+    </div>
+  </footer>
+</BaseLayout>

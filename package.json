@@ -1,0 +1,31 @@
+{
+  "name": "devnav",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Developer resource navigation - auto-updating curated directory",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.8.0",
+    "@astrojs/react": "^4.3.0",
+    "@astrojs/vercel": "^8.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@supabase/supabase-js": "^2.49.0",
+    "tailwindcss": "^3.4.0",
+    "@tailwindcss/typography": "^0.5.15",
+    "autoprefixer": "^10.4.20",
+    "fuse.js": "^7.0.0",
+    "js-yaml": "^4.1.0",
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/js-yaml": "^4.0.9",
+    "typescript": "^5.7.0"
+  }
+}

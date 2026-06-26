@@ -1,0 +1,68 @@
+---
+import type { Resource } from '../lib/types';
+
+interface Props {
+  resource: Resource;
+}
+
+const { resource } = Astro.props;
+const hostname = (() => {
+  try { return new URL(resource.url).hostname; } catch { return ''; }
+})();
+---
+
+<article
+  class="resource-card rounded-lg border border-bg-tertiary/30 dark:border-dark-bg-tertiary/30 bg-bg-secondary/50 dark:bg-dark-bg-secondary/50 p-5 hover:shadow-md transition-all"
+  data-category={resource.category}
+  data-tags={resource.tags.join(',')}
+  data-source={resource.source}
+>
+  <div class="flex items-start gap-3">
+    {resource.icon ? (
+      <img src={resource.icon} alt="" class="w-8 h-8 rounded flex-shrink-0 mt-0.5" loading="lazy" />
+    ) : (
+      <div class="w-8 h-8 rounded bg-bg-tertiary dark:bg-dark-bg-tertiary flex items-center justify-center flex-shrink-0 text-sm">
+        {resource.title.charAt(0).toUpperCase()}
+      </div>
+    )}
+    <div class="flex-1 min-w-0">
+      <h3 class="font-heading font-semibold text-base leading-tight">
+        <a
+          href={resource.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-text-primary dark:text-dark-text-primary hover:text-accent-blue dark:hover:text-accent-blue transition-colors no-underline"
+        >
+          {resource.title}
+        </a>
+      </h3>
+      {hostname && (
+        <span class="text-xs text-text-secondary/60 dark:text-dark-text-secondary/60">{hostname}</span>
+      )}
+      <p class="text-sm text-text-secondary dark:text-dark-text-secondary mt-1.5 line-clamp-2 leading-relaxed">
+        {resource.description}
+      </p>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2 mt-3">
+    {resource.featured && (
+      <span class="text-xs px-2 py-0.5 bg-accent-green/10 text-accent-green dark:bg-accent-green/20 rounded-full font-medium">
+        ★ Featured
+      </span>
+    )}
+    <span class="text-xs px-2 py-0.5 bg-accent-blue/10 text-accent-blue dark:bg-accent-blue/20 rounded-full">
+      {resource.source}
+    </span>
+    {resource.tags.slice(0, 3).map((tag) => (
+      <span class="text-xs px-2 py-0.5 bg-bg-tertiary/60 dark:bg-dark-bg-tertiary/60 text-text-secondary dark:text-dark-text-secondary rounded-full">
+        {tag}
+      </span>
+    ))}
+    {resource.tags.length > 3 && (
+      <span class="text-xs text-text-secondary/50 dark:text-dark-text-secondary/50">
+        +{resource.tags.length - 3}
+      </span>
+    )}
+  </div>
+</article>

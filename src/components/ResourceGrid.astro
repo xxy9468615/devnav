@@ -1,0 +1,51 @@
+---
+import type { Resource } from '../lib/types';
+import ResourceCard from './ResourceCard.astro';
+
+interface Props {
+  resources: Resource[];
+}
+
+const { resources } = Astro.props;
+---
+
+<div id="resource-count" class="text-sm text-text-secondary/60 dark:text-dark-text-secondary/60 mb-4">
+  Showing <span id="visible-count">{resources.length}</span> of {resources.length} resources
+</div>
+
+<div id="resource-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {resources.map((resource) => (
+    <ResourceCard resource={resource} />
+  ))}
+</div>
+
+<div id="empty-state" class="hidden text-center py-16 text-text-secondary dark:text-dark-text-secondary">
+  <p class="text-4xl mb-4">📭</p>
+  <p class="text-lg font-heading">No resources found</p>
+  <p class="text-sm mt-2">Try adjusting your search or filters</p>
+</div>
+
+<script>
+  // Client-side filtering: listen for events from SearchBar
+  document.addEventListener('filter-change', ((e: CustomEvent) => {
+    const { query } = e.detail;
+    const grid = document.getElementById('resource-grid');
+    const empty = document.getElementById('empty-state');
+    const countEl = document.getElementById('visible-count');
+    if (!grid) return;
+
+    const cards = grid.querySelectorAll('article');
+    let visible = 0;
+
+    cards.forEach((card) => {
+      const text = (card as HTMLElement).textContent?.toLowerCase() || '';
+      const match = !query || text.includes(query.toLowerCase());
+      (card as HTMLElement).style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    if (countEl) countEl.textContent = String(visible);
+    if (empty) empty.classList.toggle('hidden', visible > 0);
+    grid.classList.toggle('hidden', visible === 0);
+  }) as EventListener);
+</script>
