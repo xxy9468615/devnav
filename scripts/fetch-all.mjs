@@ -7,6 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
+import { syncFreeForDev } from './sync-free-for-dev.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
@@ -27,19 +28,16 @@ function parseMarkdownLinks(markdown) {
   let currentCategory = 'uncategorized';
 
   for (const line of markdown.split('\n')) {
-    // Detect headings as categories
     const headingMatch = line.match(/^#{2,3}\s+(.+)/);
     if (headingMatch) {
       const raw = headingMatch[1].replace(/[📒🔬🌐💰📧🖥️]/g, '').trim();
-      // Skip table of contents, translation, etc.
       if (raw.toLowerCase().includes('table of contents')) continue;
       if (raw.toLowerCase().includes('translation')) continue;
       currentCategory = raw;
       continue;
     }
 
-    // Parse link lines: * [Name](url) - description
-    const linkMatch = line.match(/\*\s+\[([^\]]+)\]\(([^)]+)\)(?:\s*[-–—:]\s*(.+))?/);
+    const linkMatch = line.match(/\*\s+\[([^\]]+)\]\(([^)]+)\)(?:\s*[\-–—:]\s*(.+))?/);
     if (linkMatch) {
       const [, title, url, description] = linkMatch;
       if (url.startsWith('http')) {
@@ -160,7 +158,6 @@ async function fetchRSS(name, url) {
 async function upsertResources(resources) {
   if (resources.length === 0) return;
 
-  // Batch upsert (Supabase limit ~100 rows per call)
   const batchSize = 100;
   for (let i = 0; i < resources.length; i += batchSize) {
     const batch = resources.slice(i, i + batchSize).map(r => ({
@@ -193,10 +190,7 @@ async function cleanupOldCommunity() {
   else console.log('  Done.');
 }
 
-// --- Main ---
-
 const awesomeLists = [
-  ['free-for-dev', 'https://raw.githubusercontent.com/ripienaar/free-for-dev/master/README.md'],
   ['awesome-selfhosted', 'https://raw.githubusercontent.com/awesome-selfhosted/awesome-selfhosted/master/README.md'],
 ];
 
@@ -208,19 +202,18 @@ async function main() {
   console.log('=== DevNav Data Fetch ===');
   console.log(`Time: ${new Date().toISOString()}\n`);
 
-  // Fetch awesome lists
+  await syncFreeForDev(supabase);
+
   for (const [name, url] of awesomeLists) {
     const resources = await fetchAwesomeList(name, url);
     await upsertResources(resources);
   }
 
-  // Fetch RSS feeds
   for (const [name, url] of rssFeeds) {
     const resources = await fetchRSS(name, url);
     await upsertResources(resources);
   }
 
-  // Cleanup old community posts
   await cleanupOldCommunity();
 
   console.log('\n=== Done ===');

@@ -9,6 +9,15 @@ const { resource } = Astro.props;
 const hostname = (() => {
   try { return new URL(resource.url).hostname; } catch { return ''; }
 })();
+const sourceLabels: Record<string, string> = {
+  'free-for-dev': 'Free for Dev',
+  'awesome': 'Awesome List',
+  'community': 'Community',
+  'bookmark': 'Bookmark',
+  'markdown': 'Local',
+  'free-service': 'Free',
+};
+const sourceLabel = sourceLabels[resource.source] || resource.source;
 ---
 
 <article
@@ -52,7 +61,7 @@ const hostname = (() => {
       </span>
     )}
     <span class="text-xs px-2 py-0.5 bg-accent-blue/10 text-accent-blue dark:bg-accent-blue/20 rounded-full">
-      {resource.source}
+      {sourceLabel}
     </span>
     {resource.tags.slice(0, 3).map((tag) => (
       <span class="text-xs px-2 py-0.5 bg-bg-tertiary/60 dark:bg-dark-bg-tertiary/60 text-text-secondary dark:text-dark-text-secondary rounded-full">
