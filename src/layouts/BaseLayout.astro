@@ -36,6 +36,17 @@ const canonicalUrl = new URL(Astro.url.pathname, SITE.url).href;
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+    <!-- Dark mode: run before paint to prevent white flash -->
+    <script is:inline>
+      (function() {
+        var d = document.documentElement;
+        var saved = localStorage.getItem('theme');
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          d.classList.add('dark');
+        }
+      })();
+    </script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

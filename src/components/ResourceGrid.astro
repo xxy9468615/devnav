@@ -7,11 +7,32 @@ interface Props {
 }
 
 const { resources } = Astro.props;
+
+const allTags = [...new Set(resources.flatMap(r => r.tags))].sort();
 ---
 
 <div id="resource-count" class="text-sm text-text-secondary/60 dark:text-dark-text-secondary/60 mb-4">
   Showing <span id="visible-count">{resources.length}</span> of {resources.length} resources
 </div>
+
+{allTags.length > 0 && (
+  <div class="flex flex-wrap gap-2 mb-6" id="tag-filters">
+    <button
+      class="tag-btn px-3 py-1 rounded-full text-xs font-medium bg-accent-blue text-white transition-colors"
+      data-tag=""
+    >
+      All Tags
+    </button>
+    {allTags.slice(0, 20).map((tag) => (
+      <button
+        class="tag-btn px-3 py-1 rounded-full text-xs font-medium bg-bg-secondary dark:bg-dark-bg-secondary text-text-secondary dark:text-dark-text-secondary hover:bg-bg-tertiary dark:hover:bg-dark-bg-tertiary transition-colors"
+        data-tag={tag}
+      >
+        {tag}
+      </button>
+    ))}
+  </div>
+)}
 
 <div id="resource-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   {resources.map((resource) => (
@@ -26,9 +47,42 @@ const { resources } = Astro.props;
 </div>
 
 <script>
-  // Client-side filtering: listen for events from SearchBar
+  let activeTag = '';
+
+  document.querySelectorAll('.tag-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeTag = (btn as HTMLElement).dataset.tag || '';
+      document.querySelectorAll('.tag-btn').forEach(b => {
+        b.className = b === btn
+          ? 'tag-btn px-3 py-1 rounded-full text-xs font-medium bg-accent-blue text-white transition-colors'
+          : 'tag-btn px-3 py-1 rounded-full text-xs font-medium bg-bg-secondary dark:bg-dark-bg-secondary text-text-secondary dark:text-dark-text-secondary hover:bg-bg-tertiary dark:hover:bg-dark-bg-tertiary transition-colors';
+      });
+      applyFilters();
+    });
+  });
+
+  document.addEventListener('click', ((e: Event) => {
+    const target = e.target as HTMLElement;
+    if (target.dataset.tagClick) {
+      activeTag = target.dataset.tagClick;
+      document.querySelectorAll('.tag-btn').forEach(b => {
+        const btn = b as HTMLElement;
+        btn.className = btn.dataset.tag === activeTag
+          ? 'tag-btn px-3 py-1 rounded-full text-xs font-medium bg-accent-blue text-white transition-colors'
+          : 'tag-btn px-3 py-1 rounded-full text-xs font-medium bg-bg-secondary dark:bg-dark-bg-secondary text-text-secondary dark:text-dark-text-secondary hover:bg-bg-tertiary dark:hover:bg-dark-bg-tertiary transition-colors';
+      });
+      applyFilters();
+    }
+  }) as EventListener);
+
+  let searchQuery = '';
+
   document.addEventListener('filter-change', ((e: CustomEvent) => {
-    const { query } = e.detail;
+    searchQuery = e.detail.query || '';
+    applyFilters();
+  }) as EventListener);
+
+  function applyFilters() {
     const grid = document.getElementById('resource-grid');
     const empty = document.getElementById('empty-state');
     const countEl = document.getElementById('visible-count');
@@ -38,14 +92,19 @@ const { resources } = Astro.props;
     let visible = 0;
 
     cards.forEach((card) => {
-      const text = (card as HTMLElement).textContent?.toLowerCase() || '';
-      const match = !query || text.includes(query.toLowerCase());
-      (card as HTMLElement).style.display = match ? '' : 'none';
-      if (match) visible++;
+      const el = card as HTMLElement;
+      const text = el.textContent?.toLowerCase() || '';
+      const tags = el.dataset.tags?.toLowerCase() || '';
+
+      const matchSearch = !searchQuery || text.includes(searchQuery.toLowerCase());
+      const matchTag = !activeTag || tags.split(',').includes(activeTag.toLowerCase());
+
+      el.style.display = (matchSearch && matchTag) ? '' : 'none';
+      if (matchSearch && matchTag) visible++;
     });
 
     if (countEl) countEl.textContent = String(visible);
     if (empty) empty.classList.toggle('hidden', visible > 0);
     grid.classList.toggle('hidden', visible === 0);
-  }) as EventListener);
+  }
 </script>

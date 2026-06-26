@@ -64,9 +64,12 @@ const sourceLabel = sourceLabels[resource.source] || resource.source;
       {sourceLabel}
     </span>
     {resource.tags.slice(0, 3).map((tag) => (
-      <span class="text-xs px-2 py-0.5 bg-bg-tertiary/60 dark:bg-dark-bg-tertiary/60 text-text-secondary dark:text-dark-text-secondary rounded-full">
+      <button
+        class="text-xs px-2 py-0.5 bg-bg-tertiary/60 dark:bg-dark-bg-tertiary/60 text-text-secondary dark:text-dark-text-secondary rounded-full hover:bg-accent-blue/20 hover:text-accent-blue transition-colors cursor-pointer"
+        data-tag-click={tag}
+      >
         {tag}
-      </span>
+      </button>
     ))}
     {resource.tags.length > 3 && (
       <span class="text-xs text-text-secondary/50 dark:text-dark-text-secondary/50">
