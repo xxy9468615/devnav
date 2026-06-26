@@ -1,6 +1,6 @@
-# DevNav — 1200+ Free Developer Tools & Resources Directory
+# DevNav — Free Developer Tools & Resources Directory
 
-> 🚀 Auto-updated hourly from [free-for-dev](https://github.com/ripienaar/free-for-dev), [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted), and Hacker News.
+> Auto-updated hourly from [free-for-dev](https://github.com/ripienaar/free-for-dev), [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted), and Hacker News.
 
 ## 📂 Resource Categories
 
@@ -36,51 +36,26 @@
 ## 🚀 Quick Start
 
 ```bash
-# Clone
 git clone https://github.com/xxy9468615/devnav.git && cd devnav
-
-# Install
 npm install
-
-# Configure
 cp .env.example .env
 # Edit .env with your Supabase credentials
-
-# Setup database
 # Run setup-supabase.sql in Supabase SQL Editor
-
-# Fetch data
 npm run fetch
-
-# Dev server
 npm run dev
 ```
 
-## 📦 Deploy to Vercel (Free)
+## 📦 Deploy to Vercel
 
 1. Fork this repo
 2. Connect to [Vercel](https://vercel.com)
-3. Add environment variables:
-   - `PUBLIC_SUPABASE_URL`
-   - `PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_KEY`
-4. Deploy — done!
+3. Add environment variables (`PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`)
+4. Deploy
 
-## 🔄 Auto Data Sync
+## 🔄 Data Sync
 
-GitHub Actions runs every hour to sync resources:
-
-- [free-for-dev](https://github.com/ripienaar/free-for-dev) — 1200+ free SaaS/PaaS/IaaS services
-- [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted) — self-hosted software
-- [Hacker News](https://news.ycombinator.com) — top 30 frontpage picks
-
-Add GitHub Secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`) to enable.
+GitHub Actions runs every hour to sync resources from free-for-dev, awesome-selfhosted, and Hacker News. Add GitHub Secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`) to enable.
 
 ## 📄 License
 
 MIT
-
----
-
-**Keywords:** free developer tools, developer resources, free SaaS, free API, cloud free tier, devops tools, AI tools, open source, awesome list, free hosting, free database, developer directory, programming resources, free tier list, web development tools
