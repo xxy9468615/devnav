@@ -21,7 +21,10 @@ if (!currentCategory) {
 const resources = allResources.filter(r => r.category === category);
 ---
 
-<BaseLayout title={`${currentCategory.icon} ${currentCategory.name} — DevNav`}>
+<BaseLayout
+  title={`${currentCategory.icon} ${currentCategory.name} — Free Developer Tools | DevNav`}
+  description={`${currentCategory.description}. Browse free ${currentCategory.name.toLowerCase()} tools, services, and resources. Auto-updated from awesome lists.`}
+>
   <Navigation />
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
