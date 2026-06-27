@@ -5,7 +5,7 @@ export interface Resource {
   description: string;
   category: string;
   tags: string[];
-  source: 'bookmark' | 'awesome' | 'free-for-dev' | 'free-service' | 'community' | 'markdown';
+  source: 'bookmark' | 'awesome' | 'free-for-dev' | 'free-service' | 'markdown';
   icon: string | null;
   featured: boolean;
   updatedAt: string;
