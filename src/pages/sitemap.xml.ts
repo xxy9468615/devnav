@@ -3,7 +3,7 @@ import { SITE } from '../config/site';
 import { loadCategories } from '../lib/resources';
 
 export const GET: APIRoute = async () => {
-  const categories = await loadCategories();
+  const categories = loadCategories();
 
   const urls: string[] = [
     SITE.url,

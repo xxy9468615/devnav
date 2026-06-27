@@ -12,7 +12,7 @@ export default function SearchBar() {
       }));
     }, 200);
 
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); };
   }, [query]);
 
   // Keyboard shortcut: / to focus
@@ -28,7 +28,7 @@ export default function SearchBar() {
       }
     };
     document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    return () => { document.removeEventListener('keydown', handler); };
   }, []);
 
   return (
@@ -42,16 +42,16 @@ export default function SearchBar() {
         ref={inputRef}
         type="text"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => { setQuery(e.target.value); }}
         placeholder="Search resources... (press / to focus)"
         className="w-full pl-10 pr-10 py-3 bg-bg-secondary dark:bg-dark-bg-secondary border border-bg-tertiary/50 dark:border-dark-bg-tertiary/50 rounded-xl text-text-primary dark:text-dark-text-primary placeholder:text-text-secondary/40 dark:placeholder:text-dark-text-secondary/40 focus:outline-none focus:ring-2 focus:ring-accent-blue/30 focus:border-accent-blue/50 transition-all text-sm"
       />
       {query && (
         <button
-          onClick={() => setQuery('')}
+          onClick={() => { setQuery(''); }}
           className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary/50 hover:text-text-secondary transition-colors"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
