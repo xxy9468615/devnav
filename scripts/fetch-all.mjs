@@ -42,7 +42,7 @@ function parseMarkdownLinks(markdown) {
       continue;
     }
 
-    const linkMatch = line.match(/\*\s+\[([^\]]+)\]\(([^)]+)\)(?:\s*[-–—:]\s*(.+))?/);
+    const linkMatch = line.match(/\*\s+\[([^\]]+)\]\(([^)]+)\)(?:\s*[-–—:]\s*(.+))?/u);
     if (linkMatch) {
       const [, title, url, description] = linkMatch;
       if (url.startsWith('http')) {
@@ -116,50 +116,6 @@ async function fetchAwesomeList(name, url) {
   }
 }
 
-async function fetchRSS(name, url) {
-  console.log(`Fetching RSS: ${name}...`);
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const xml = await res.text();
-
-    const items = [];
-    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-    let match;
-    while ((match = itemRegex.exec(xml)) !== null) {
-      const item = match[1];
-      const title = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/);
-      const link = item.match(/<link>(.*?)<\/link>/);
-      const desc = item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>|<description>(.*?)<\/description>/s);
-
-      if (title && link) {
-        const titleText = (title[1] || title[2] || '').trim();
-        const linkText = (link[1] || '').trim();
-        const descText = (desc?.[1] || desc?.[2] || '').replace(/<[^>]+>/g, '').trim().slice(0, 300);
-
-        if (linkText.startsWith('http')) {
-          items.push({
-            id: md5(linkText),
-            title: titleText,
-            url: linkText,
-            description: descText,
-            category: 'community',
-            tags: [name.toLowerCase(), 'community'],
-            source: 'community',
-            icon: `https://www.google.com/s2/favicons?domain=${new URL(linkText).hostname}&sz=32`,
-            featured: false,
-          });
-        }
-      }
-    }
-    console.log(`  Got ${items.length} items from ${name}`);
-    return items;
-  } catch (err) {
-    console.error(`  Failed to fetch ${name}: ${err.message}`);
-    return [];
-  }
-}
-
 async function upsertResources(resources) {
   if (resources.length === 0) return;
 
@@ -180,19 +136,6 @@ async function upsertResources(resources) {
       console.error(`  Upsert error (batch ${i}):`, error.message);
     }
   }
-}
-
-async function cleanupOldCommunity() {
-  console.log('Cleaning up old community posts (>7 days)...');
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { error } = await supabase
-    .from('resources')
-    .delete()
-    .eq('source', 'community')
-    .lt('updated_at', sevenDaysAgo);
-
-  if (error) console.error('  Cleanup error:', error.message);
-  else console.log('  Done.');
 }
 
 async function syncCustomResources() {
@@ -222,12 +165,10 @@ async function syncCustomResources() {
   }
 }
 
+// --- Main ---
+
 const awesomeLists = [
   ['awesome-selfhosted', 'https://raw.githubusercontent.com/awesome-selfhosted/awesome-selfhosted/master/README.md'],
-];
-
-const rssFeeds = [
-  ['Hacker News', 'https://hnrss.org/frontpage?count=30'],
 ];
 
 async function main() {
@@ -242,13 +183,6 @@ async function main() {
     const resources = await fetchAwesomeList(name, url);
     await upsertResources(resources);
   }
-
-  for (const [name, url] of rssFeeds) {
-    const resources = await fetchRSS(name, url);
-    await upsertResources(resources);
-  }
-
-  await cleanupOldCommunity();
 
   console.log('\n=== Done ===');
 }
