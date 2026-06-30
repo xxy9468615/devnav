@@ -21,3 +21,10 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: node scripts/fetch-all.mjs
+      - name: Sync embeddings (incremental)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          XFYUN_BASE_URL: ${{ secrets.XFYUN_BASE_URL }}
+          XFYUN_API_KEY: ${{ secrets.XFYUN_API_KEY }}
+        run: node scripts/sync-embeddings.mjs
