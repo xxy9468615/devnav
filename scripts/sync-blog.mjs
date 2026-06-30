@@ -1,6 +1,7 @@
 /**
  * Sync blog posts from ahome.cyou into Supabase.
- * Filters by tags AND title/description keywords.
+ * Filters by tags (primary) AND title keywords (fallback).
+ * Excludes test/intro/rant posts via EXCLUDE_TAGS.
  *
  * Run standalone:  node scripts/sync-blog.mjs
  * Run via fetch-all: imported and called from fetch-all.mjs
@@ -13,68 +14,101 @@ import crypto from 'node:crypto';
 
 const BLOG_URL = 'https://www.ahome.cyou/blog';
 
-// Tags to pull from blog → DevNav category
+// Tags pulled from blog /tags/ links → DevNav category.
+// Site主打免费资源库 → free-services 是主力桶。
 const TAG_FILTER = {
+  // 免费/白嫖 → free-services（站主推）
   'free': 'free-services',
   'free api': 'free-services',
   'free tools': 'free-services',
-  'tools': 'productivity',
-  'developer tools': 'productivity',
+  'domains': 'free-services',
+  'hosting': 'free-services',
+  'static hosting': 'free-services',
+  'php': 'free-services',
+  'cloud': 'free-services',
+  'vps': 'free-services',
+
+  // AI 类 → ai-ml
+  'ai': 'ai-ml',
   'ai gateway': 'ai-ml',
   'ai translation': 'ai-ml',
   'siliconflow': 'ai-ml',
-  'vercel': 'devops',
-  'domains': 'devops',
+  'stepfun': 'ai-ml',
+  'immersive translate': 'ai-ml',
+
+  // 工具/效率 → productivity
+  'tools': 'productivity',
+  'developer tools': 'productivity',
   'mcp': 'productivity',
-  'browser extension': 'frontend',
+
+  // 部署/运维 → devops
+  'vercel': 'devops',
+  'npm': 'devops',
 };
 
-// Keywords in title/description to match → DevNav category
+// Non-resource tags → skip whole post (test/intro/rant junk)
+const EXCLUDE_TAGS = new Set([
+  'test', 'intro', 'blog', 'rant', 'typography',
+  'media', 'markdown', 'images',
+]);
+
+// Keyword fallback — title only (description too noisy, e.g. "with AI assistant")
 const KEYWORD_FILTER = [
-  { keywords: ['免费', 'free', '白嫖', '薅羊毛', '0元'], category: 'free-services' },
-  { keywords: ['工具', 'tool', '神器', '效率', '效率提升'], category: 'productivity' },
-  { keywords: ['ai', 'gpt', 'claude', '大模型', 'llm', 'deepseek', 'openai', 'gemini'], category: 'ai-ml' },
-  { keywords: ['部署', 'deploy', 'vercel', 'netlify', 'railway', 'fly.io', 'cloudflare'], category: 'devops' },
-  { keywords: ['vps', '服务器', 'server', 'hosting', '域名', 'domain'], category: 'devops' },
-  { keywords: ['数据库', 'database', 'supabase', 'postgres', 'redis'], category: 'database' },
-  { keywords: ['设计', 'design', 'ui', 'ux', 'figma', '配色'], category: 'design' },
-  { keywords: ['安全', 'security', 'ssl', '证书', '认证'], category: 'security' },
-  { keywords: ['前端', 'frontend', 'react', 'vue', 'astro', 'next.js', 'css'], category: 'frontend' },
-  { keywords: ['后端', 'backend', 'api', 'node', 'python', 'rust', 'go '], category: 'backend' },
-  { keywords: ['学习', 'learn', '教程', 'tutorial', 'course', '课程'], category: 'learning' },
-  { keywords: ['插件', 'plugin', '扩展', 'extension', 'chrome', '浏览器'], category: 'frontend' },
-  { keywords: ['翻译', 'translate', 'immersive'], category: 'productivity' },
-  { keywords: ['npm', 'github', '开源', 'open source'], category: 'devops' },
+  { keywords: ['免费', 'free', '白嫖', '0元'], category: 'free-services' },
+  { keywords: ['ai', 'gpt', 'claude', '大模型', 'llm', 'deepseek', 'openai'], category: 'ai-ml' },
+  { keywords: ['vps', '服务器', 'hosting', '域名', 'domain'], category: 'free-services' },
+  { keywords: ['mcp', '工具', 'tool'], category: 'productivity' },
 ];
 
 function md5(str) {
   return crypto.createHash('md5').update(str).digest('hex').slice(0, 12);
 }
 
+// Decode common HTML entities (blog HTML is not pre-decoded)
+function decodeEntities(s) {
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)));
+}
+
 /**
  * Parse blog page HTML to extract post cards.
  * Returns array of { title, url, description, tags }
+ *
+ * Tags are pulled from <a href="/tags/xxx"> links (URL-decoded),
+ * NOT from #hashtag text — /tags/ links are the canonical source.
  */
 function parseBlogPage(html) {
   const posts = [];
 
-  const sections = html.split(/(?=<a[^>]*href="\/blog\/)/i);
+  // Split on the article-card anchor pattern
+  const sections = html.split(/(?=<a[^>]*href="\/blog\/[^"]+"[^>]*class="block overflow-hidden)/i);
 
   for (const section of sections) {
     const linkMatch = section.match(/href="(\/blog\/[^"]+)"/i);
     if (!linkMatch) continue;
 
-    const titleMatch = section.match(/<h[23][^>]*>([^<]+)<\/h[23]>/i);
+    // Title is nested inside <h2>...<a>TEXT</a>...</h2>
+    const titleMatch = section.match(/<h2[^>]*>[\s\S]*?<a[^>]*>([^<]+)<\/a>[\s\S]*?<\/h2>/i);
     if (!titleMatch) continue;
 
     const url = 'https://www.ahome.cyou' + linkMatch[1];
-    const title = titleMatch[1].trim();
+    const title = decodeEntities(titleMatch[1].trim());
 
     const descMatch = section.match(/<p[^>]*>([^<]+)<\/p>/i);
-    const description = descMatch ? descMatch[1].trim() : '';
+    const description = descMatch ? decodeEntities(descMatch[1].trim()) : '';
 
-    const tagMatches = [...section.matchAll(/#[\s]*([A-Za-z一-鿿][\w\s]*)/gi)];
-    const tags = tagMatches.map(m => m[1].trim().toLowerCase());
+    const tags = [...new Set(
+      [...section.matchAll(/href="\/tags\/([^"]+)"/gi)]
+        .map(m => decodeURIComponent(m[1]).trim().toLowerCase())
+    )];
 
     posts.push({ title, url, description, tags });
   }
@@ -83,24 +117,23 @@ function parseBlogPage(html) {
 }
 
 /**
- * Match blog post to DevNav category by tags AND title/description keywords
+ * Match blog post to DevNav category.
+ * Order: exclude-tag (skip) → tag map → keyword fallback (title only)
  */
 function matchCategory(post) {
-  // First check tags
+  // 1. Any exclude tag → skip whole post
+  if (post.tags.some(t => EXCLUDE_TAGS.has(t))) return null;
+
+  // 2. Tag hit
   for (const tag of post.tags) {
-    const normalized = tag.toLowerCase();
-    if (TAG_FILTER[normalized]) {
-      return TAG_FILTER[normalized];
-    }
+    if (TAG_FILTER[tag]) return TAG_FILTER[tag];
   }
 
-  // Then check keywords in title + description
-  const text = `${post.title} ${post.description}`.toLowerCase();
+  // 3. Keyword fallback — title only
+  const titleLower = post.title.toLowerCase();
   for (const { keywords, category } of KEYWORD_FILTER) {
     for (const kw of keywords) {
-      if (text.includes(kw.toLowerCase())) {
-        return category;
-      }
+      if (titleLower.includes(kw.toLowerCase())) return category;
     }
   }
 
@@ -134,7 +167,7 @@ export async function syncBlog(supabase) {
 
   if (matched.length === 0) return;
 
-  // Build resources
+  // Build resources — real tags first, 'blog' marker last, cap at 6
   const now = new Date().toISOString();
   const resources = matched.map(post => ({
     id: md5(post.url),
