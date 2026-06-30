@@ -15,6 +15,8 @@ const XFYUN_URL = process.env.XFYUN_BASE_URL || 'https://maas-api.cn-huabei-1.xf
 const XFYUN_KEY = process.env.XFYUN_API_KEY;
 const XFYUN_MODEL = 'xop3qwen8bembedding';
 const CONCURRENCY = 10;
+const EMBED_TIMEOUT_MS = 30_000;
+const EMBED_MAX_RETRIES = 3;
 
 if (!SUPABASE_URL || !SUPABASE_KEY || !XFYUN_KEY) {
   console.error('Missing env: SUPABASE_URL, SUPABASE_SERVICE_KEY, XFYUN_API_KEY');
@@ -25,23 +27,48 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
   realtime: { enabled: false },
 });
 
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
 async function getEmbedding(text) {
-  const res = await fetch(`${XFYUN_URL}/embeddings`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${XFYUN_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ model: XFYUN_MODEL, input: [text] }),
-  });
+  let lastErr;
+  for (let attempt = 1; attempt <= EMBED_MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch(`${XFYUN_URL}/embeddings`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${XFYUN_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ model: XFYUN_MODEL, input: [text] }),
+        signal: AbortSignal.timeout(EMBED_TIMEOUT_MS),
+      });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`iFlytek ${res.status}: ${err}`);
+      if (res.status === 429 || res.status >= 500) {
+        lastErr = new Error(`iFlytek ${res.status}: transient, retrying`);
+        if (attempt < EMBED_MAX_RETRIES) {
+          await sleep(1000 * attempt);
+          continue;
+        }
+        const errBody = await res.text().catch(() => '');
+        throw new Error(`iFlytek ${res.status} (after ${attempt} attempts): ${errBody}`);
+      }
+
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`iFlytek ${res.status}: ${err}`);
+      }
+
+      const data = await res.json();
+      return data.data[0].embedding;
+    } catch (err) {
+      lastErr = err;
+      const isTransient = err.name === 'TimeoutError' || err.name === 'AbortError' ||
+        /fetch failed|network|ECONNRESET|ETIMEDOUT/i.test(err.message);
+      if (!isTransient || attempt === EMBED_MAX_RETRIES) throw err;
+      await sleep(1000 * attempt);
+    }
   }
-
-  const data = await res.json();
-  return data.data[0].embedding;
+  throw lastErr || new Error('getEmbedding failed');
 }
 
 function buildResourceText(r) {
@@ -68,7 +95,6 @@ async function main() {
   }
   console.log(`Total resources: ${allResources.length}`);
 
-  // Fetch existing embedding ids to find missing
   let existingIds = new Set();
   let embOffset = 0;
   while (true) {
@@ -92,7 +118,7 @@ async function main() {
     return;
   }
 
-  let processed = 0, errors = 0;
+  let processed = 0, errors = 0, writeErrors = 0;
   const batch = [];
 
   for (let i = 0; i < todo.length; i += CONCURRENCY) {
@@ -115,17 +141,25 @@ async function main() {
 
     if (batch.length > 0) {
       const { error: e } = await supabase.from('resource_embeddings').upsert(batch);
-      if (e) console.error(`  Upsert error: ${e.message}`);
+      if (e) {
+        console.error(`  Upsert error: ${e.message}`);
+        writeErrors += batch.length;
+        processed -= batch.length;
+      }
       batch.length = 0;
     }
 
     const total = i + chunk.length;
     if (total % 100 === 0 || total === todo.length) {
-      console.log(`  ${total}/${todo.length} (${processed} ok, ${errors} err)`);
+      console.log(`  ${total}/${todo.length} (${processed} ok, ${errors} embed err, ${writeErrors} write err)`);
     }
   }
 
-  console.log(`\n✅ Done. ${processed} new embeddings, ${errors} errors`);
+  const totalErrors = errors + writeErrors;
+  console.log(`\n✅ Done. ${processed} new embeddings, ${totalErrors} errors (${errors} embed, ${writeErrors} write)`);
+
+  if (writeErrors > 0) process.exit(2);
+  if (totalErrors > 0) console.warn(`Warning: ${totalErrors} resources failed; they'll be retried next run.`);
 }
 
 main().catch(err => { console.error('Fatal:', err); process.exit(1); });
