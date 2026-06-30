@@ -30,6 +30,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
   realtime: { enabled: false },
 });
 
+/**
+ * Generates an embedding vector for the provided text.
+ * @param {string} text - The input text to embed.
+ * @return {number[]} The embedding vector.
+ */
 async function getEmbedding(text) {
   const res = await fetch(`${XFYUN_URL}/embeddings`, {
     method: 'POST',

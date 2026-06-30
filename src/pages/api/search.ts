@@ -5,6 +5,12 @@ const XFYUN_KEY = import.meta.env.XFYUN_API_KEY;
 const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.SUPABASE_SERVICE_KEY;
 
+/**
+ * Retrieves an embedding vector for the given text.
+ *
+ * @param text - Text to embed
+ * @returns The embedding vector for the supplied text
+ */
 async function getEmbedding(text) {
   const res = await fetch(`${XFYUN_URL}/embeddings`, {
     method: 'POST',
@@ -24,6 +30,11 @@ async function getEmbedding(text) {
   return data.data[0].embedding;
 }
 
+/**
+ * Searches resources for a query string and returns ranked matches.
+ *
+ * @returns A JSON response containing the trimmed query, the total number of matches, and formatted results; a validation or server error response when the request cannot be processed.
+ */
 export async function POST({ request }) {
   try {
     const { query } = await request.json();
