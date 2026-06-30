@@ -26,6 +26,16 @@ async function getEmbedding(text) {
 
 export async function POST({ request }) {
   try {
+    // Auth check
+    const auth = request.headers.get('x-api-key');
+    const API_KEY = import.meta.env.SEARCH_API_KEY;
+    if (API_KEY && auth !== API_KEY) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const { query } = await request.json();
 
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
@@ -35,8 +45,10 @@ export async function POST({ request }) {
       });
     }
 
+    // 1. Generate query embedding
     const embedding = await getEmbedding(query.trim());
 
+    // 2. Vector search via Supabase REST API
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
       realtime: { enabled: false },
     });
@@ -52,6 +64,7 @@ export async function POST({ request }) {
       });
     }
 
+    // 3. Format and return
     const formatted = results.map((r, i) => ({
       rank: i + 1,
       id: r.id,
