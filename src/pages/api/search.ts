@@ -20,6 +20,7 @@ async function workerEmbed(texts: string[]): Promise<number[][]> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ texts }),
+    signal: AbortSignal.timeout(10_000),
   });
 
   if (!res.ok) {
@@ -39,6 +40,7 @@ async function workerRerank(query: string, documents: string[]): Promise<number[
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ query, documents }),
+    signal: AbortSignal.timeout(10_000),
   });
 
   if (!res.ok) {
