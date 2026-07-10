@@ -39,7 +39,7 @@ async function getEmbedding(text) {
           'Authorization': `Bearer ${XFYUN_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ model: XFYUN_MODEL, input: [text] }),
+        body: JSON.stringify({ model: XFYUN_MODEL, input: [text], dimensions: 1024 }),
         signal: AbortSignal.timeout(EMBED_TIMEOUT_MS),
       });
 
